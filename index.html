@@ -56,23 +56,24 @@
                 <p><em>Esta información ha sido registrada en el sistema</em></p>
             `;
             
-            // Enviar a webhook
-            fetch('https://webhook.site/1df096b4-f7f3-4016-9465-a065ce0c001c', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({
-                    level: level,
-                    md5: md5,
-                    dimensions: `${width}x${height}`,
-                    user: 'pepe',
-                    source: 'github-pages',
-                    timestamp: new Date().toISOString()
-                })
-            }).then(() => {
-                debug('📤 Datos enviados exitosamente al webhook');
-            }).catch(e => {
-                debug('❌ Error enviando webhook: ' + e);
+            // Enviar a webhook VIA GET (evita CORS: params en query string)
+            const params = new URLSearchParams({
+                level: level,
+                md5: md5,
+                dimensions: `${width}x${height}`,
+                user: 'pepe',
+                source: 'github-pages',
+                timestamp: new Date().toISOString()
             });
+            const webhookUrl = `https://webhook.site/1df096b4-f7f3-4016-9465-a065ce0c001c?${params.toString()}`;
+            
+            fetch(webhookUrl, { method: 'GET' })
+                .then(() => {
+                    debug('📤 Datos enviados exitosamente al webhook (ver logs en webhook.site)');
+                })
+                .catch(e => {
+                    debug('❌ Error enviando webhook: ' + e);
+                });
         }
         
         function error(msg) {
@@ -115,5 +116,3 @@
     </script>
 </body>
 </html>
-
-
